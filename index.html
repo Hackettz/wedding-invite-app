@@ -552,8 +552,19 @@
 
         // Define Firebase configuration from Global variables
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        // const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {}; // Original line
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Firebase configuration (จากข้อมูลที่คุณให้มา)
+        const firebaseConfig = {
+            apiKey: "AIzaSyD3JYJ9sKxqjxg6Qok_MnEuEM_Bard8Iig",
+            authDomain: "wedding-c8a39.firebaseapp.com",
+            projectId: "wedding-c8a39",
+            storageBucket: "wedding-c8a39.firebasestorage.app",
+            messagingSenderId: "10470350513",
+            appId: "1:10470350513:web:c61f285177c45386b84c90",
+            measurementId: "G-HQF8B952H1"
+        };
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
