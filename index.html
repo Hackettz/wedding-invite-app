@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เชิญร่วมงานแต่งงาน</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* กำหนดฟอนต์หลักสำหรับทั้งหน้า */
+        * {
+            font-family: 'Prompt', sans-serif;
+        }
+        
+        /* สไตล์สำหรับซองจดหมาย */
+        .envelope {
+            perspective: 1000px; /* เพิ่มมิติ 3D */
+        }
+        
+        .envelope-flap {
+            transform-origin: top; /* หมุนจากด้านบน */
+            transition: transform 1.5s; /* แอนิเมชันการเปิดฝาซอง */
+        }
+        
+        .envelope-flap.open {
+            transform: rotateX(180deg); /* หมุนฝาซอง 180 องศาเพื่อเปิด */
+        }
+        
+        .envelope-content {
+            transform: translateY(20px); /* เลื่อนเนื้อหาลงเล็กน้อย */
+            opacity: 0; /* ซ่อนเนื้อหาเริ่มต้น */
+            transition: all 1s; /* แอนิเมชันการแสดงเนื้อหา */
+        }
+        
+        .envelope-content.show {
+            transform: translateY(0); /* เลื่อนเนื้อหาขึ้น */
+            opacity: 1; /* แสดงเนื้อหา */
+        }
+        
+        /* สไตล์สำหรับสไลด์รูปภาพในแกลเลอรี่ */
+        .slide {
+            transition: all 0.5s; /* แอนิเมชันการเปลี่ยนสไลด์ */
+        }
+        
+        .slide-hidden {
+            display: none; /* ซ่อนสไลด์ที่ไม่ใช้งาน */
+        }
+        
+        /* คีย์เฟรมสำหรับแอนิเมชัน Fade In */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); } /* เริ่มต้นจากโปร่งใสและเลื่อนลง */
+            to { opacity: 1; transform: translateY(0); } /* สิ้นสุดที่ทึบแสงและเลื่อนขึ้น */
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.8s ease-out forwards; /* ใช้แอนิเมชัน fadeIn */
+        }
+        
+        /* ดีเลย์สำหรับแอนิเมชัน fadeIn */
+        .delay-1 { animation-delay: 0.2s; }
+        .delay-2 { animation-delay: 0.4s; }
+        .delay-3 { animation-delay: 0.6s; }
+        
+        /* สไตล์สำหรับ Scrollbar แบบกำหนดเอง */
+        ::-webkit-scrollbar {
+            width: 8px; /* ความกว้างของ scrollbar */
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; /* สีพื้นหลังของ track */
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #e9b8d2; /* สีของ thumb */
+            border-radius: 10px; /* ขอบโค้งของ thumb */
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #d48fb6; /* สีของ thumb เมื่อ hover */
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-pink-50 to-purple-50 min-h-screen">
+    <div id="token-page" class="min-h-screen flex flex-col items-center justify-center p-4">
+        <div class="envelope w-full max-w-md mx-auto">
+            <div class="envelope-flap h-24 bg-gradient-to-r from-pink-300 to-purple-300 rounded-t-3xl shadow-lg"></div>
+            <div class="bg-white p-8 rounded-xl shadow-lg border-2 border-pink-200">
+                <div class="text-center mb-8">
+                    <div class="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-r from-pink-200 to-purple-200 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                    </div>
+                    <h1 class="text-2xl font-semibold text-gray-800">เชิญร่วมงานแต่งงาน</h1>
+                    <p class="text-gray-600 mt-2">กรุณาใส่โทเค็นเพื่อเข้าชมรายละเอียดงาน</p>
+                </div>
+                
+                <div class="envelope-content">
+                    <div class="mb-4">
+                        <input type="text" id="token-input" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-300 text-center" placeholder="กรุณาใส่โทเค็นของคุณ">
+                    </div>
+                    <button id="submit-token" class="w-full bg-gradient-to-r from-pink-400 to-purple-400 text-white py-3 rounded-lg font-medium hover:from-pink-500 hover:to-purple-500 transition duration-300 shadow-md">
+                        เข้าสู่งานแต่งงาน
+                    </button>
+                    
+                    <div class="mt-4 text-center text-sm text-gray-500">
+                        <p>โทเค็นตัวอย่าง: <span class="font-mono text-pink-500">ABC123</span> (สำหรับแขก)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-8 text-center space-y-4">
+            <h2 class="text-xl font-semibold text-gray-800">หรือเข้าชมโดยตรง:</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <button id="shortcut-gallery" class="bg-blue-400 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-500 transition duration-300 shadow-md flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L20 20m-6-6l2-2m-2-2l2-2" />
+                    </svg>
+                    แกลเลอรี่
+                </button>
+                <button id="shortcut-venue" class="bg-green-400 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-500 transition duration-300 shadow-md flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    สถานที่จัดงาน
+                </button>
+                <button id="shortcut-schedule" class="bg-purple-400 text-white py-3 px-6 rounded-lg font-medium hover:bg-purple-500 transition duration-300 shadow-md flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    กำหนดการ
+                </button>
+            </div>
+            <button id="admin-access" class="text-gray-500 hover:text-pink-500 text-sm transition duration-300 flex items-center justify-center mx-auto mt-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                สำหรับผู้ดูแลระบบ
+            </button>
+        </div>
+    </div>
+
+    <div id="admin-login-page" class="min-h-screen flex items-center justify-center p-4 hidden">
+        <div class="w-full max-w-md">
+            <div class="bg-white p-8 rounded-xl shadow-lg border-2 border-pink-200">
+                <div class="text-center mb-8">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-pink-200 to-purple-200 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                    </div>
+                    <h1 class="text-2xl font-semibold text-gray-800">เข้าสู่ระบบผู้ดูแล</h1>
+                    <p class="text-gray-600 mt-2">กรุณาใส่รหัสผ่านเพื่อเข้าสู่ระบบ</p>
+                </div>
+                
+                <div class="mb-4">
+                    <input type="password" id="admin-password" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-300 text-center" placeholder="รหัสผ่าน">
+                </div>
+                <button id="admin-login-btn" class="w-full bg-gradient-to-r from-pink-400 to-purple-400 text-white py-3 rounded-lg font-medium hover:from-pink-500 hover:to-purple-500 transition duration-300 shadow-md">
+                    เข้าสู่ระบบ
+                </button>
+                
+                <div class="mt-4 text-center text-sm text-gray-500">
+                    <p>รหัสผ่านตัวอย่าง: <span class="font-mono text-pink-500">admin123</span></p>
+                </div>
+                
+                <div class="mt-6 text-center">
+                    <button id="back-to-token" class="text-gray-500 hover:text-pink-500 text-sm transition duration-300">
+                        กลับไปหน้าหลัก
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="gallery-page" class="min-h-screen hidden">
+        <header class="bg-white shadow-md py-4 px-6 sticky top-0 z-10">
+            <div class="flex justify-between items-center">
+                <h1 class="text-xl font-semibold text-gray-800">งานแต่งงาน</h1>
+                <div class="text-sm text-pink-500 font-medium" id="guest-name-display"></div>
+            </div>
+        </header>
+
+        <div class="container mx-auto px-4 py-8">
+            <section id="countdown-section" class="mb-12 bg-gradient-to-r from-pink-100 to-purple-100 rounded-xl shadow-lg p-6 text-center opacity-0 fade-in">
+                <div class="h-24 mb-6 flex items-center justify-center text-gray-700 text-lg font-bold">
+                    <span class="text-4xl font-bold text-pink-700">อาร์ม & มิ้นต์</span>
+                </div>
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">เหลือเวลาอีก</h2>
+                <div class="flex justify-center items-center space-x-4 text-purple-700 font-bold text-4xl md:text-5xl">
+                    <div>
+                        <span id="days">00</span>
+                        <div class="text-sm font-normal text-gray-600">วัน</div>
+                    </div>
+                    <span class="text-gray-400">:</span>
+                    <div>
+                        <span id="hours">00</span>
+                        <div class="text-sm font-normal text-gray-600">ชั่วโมง</div>
+                    </div>
+                    <span class="text-gray-400">:</span>
+                    <div>
+                        <span id="minutes">00</span>
+                        <div class="text-sm font-normal text-gray-600">นาที</div>
+                    </div>
+                    <span class="text-gray-400">:</span>
+                    <div>
+                        <span id="seconds">00</span>
+                        <div class="text-sm font-normal text-gray-600">วินาที</div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="gallery-section" class="mb-12">
+                <h2 class="text-2xl font-semibold text-center mb-6 text-gray-800 opacity-0 fade-in">แกลเลอรี่</h2>
+                
+                <div class="relative overflow-hidden rounded-xl shadow-lg mb-8 opacity-0 fade-in delay-1">
+                    <div class="carousel flex transition-transform duration-500" id="image-carousel">
+                        <div class="w-full flex-shrink-0">
+                            <img src="https://placehold.co/1280x720/E9B8D2/FFFFFF?text=Wedding+Photo+1" alt="Wedding Photo 1" class="w-full h-auto object-cover rounded-xl">
+                        </div>
+                        <div class="w-full flex-shrink-0">
+                            <img src="https://placehold.co/1280x720/CDB4DB/FFFFFF?text=Wedding+Photo+2" alt="Wedding Photo 2" class="w-full h-auto object-cover rounded-xl">
+                        </div>
+                        <div class="w-full flex-shrink-0">
+                            <img src="https://placehold.co/1280x720/BDE0FE/FFFFFF?text=Wedding+Photo+3" alt="Wedding Photo 3" class="w-full h-auto object-cover rounded-xl">
+                        </div>
+                    </div>
+                    
+                    <div class="absolute inset-y-0 left-0 flex items-center">
+                        <button class="bg-white bg-opacity-50 hover:bg-opacity-75 rounded-r-full p-2 focus:outline-none" id="prev-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="absolute inset-y-0 right-0 flex items-center">
+                        <button class="bg-white bg-opacity-50 hover:bg-opacity-75 rounded-l-full p-2 focus:outline-none" id="next-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="absolute bottom-4 left-0 right-0 flex justify-center space-x-2" id="carousel-indicators">
+                        <span class="h-2 w-2 rounded-full bg-white bg-opacity-100"></span>
+                        <span class="h-2 w-2 rounded-full bg-white bg-opacity-50"></span>
+                        <span class="h-2 w-2 rounded-full bg-white bg-opacity-50"></span>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 opacity-0 fade-in delay-2">
+                    <img src="https://placehold.co/400x400/FFC8DD/FFFFFF?text=Photo+A" alt="Photo A" class="w-full h-auto object-cover rounded-lg shadow">
+                    <img src="https://placehold.co/400x400/FFAFCC/FFFFFF?text=Photo+B" alt="Photo B" class="w-full h-auto object-cover rounded-lg shadow">
+                    <img src="https://placehold.co/400x400/BDE0FE/FFFFFF?text=Photo+C" alt="Photo C" class="w-full h-auto object-cover rounded-lg shadow">
+                    <img src="https://placehold.co/400x400/A2D2FF/FFFFFF?text=Photo+D" alt="Photo D" class="w-full h-auto object-cover rounded-lg shadow">
+                    <img src="https://placehold.co/400x400/FFD1E0/FFFFFF?text=Photo+E" alt="Photo E" class="w-full h-auto object-cover rounded-lg shadow">
+                    <img src="https://placehold.co/400x400/CDB4DB/FFFFFF?text=Photo+F" alt="Photo F" class="w-full h-auto object-cover rounded-lg shadow">
+                </div>
+            </section>
+
+            <section id="post-wedding-gallery-section" class="mb-12 bg-white rounded-xl shadow-lg p-6 hidden">
+                <h2 class="text-2xl font-semibold mb-6 text-gray-800">แกลเลอรี่หลังงาน / Real-time</h2>
+                <p class="text-gray-600 mb-4">รูปภาพจากงานแต่งงานจะถูกอัปเดตที่นี่แบบเรียลไทม์ หรือหลังจากงานเสร็จสิ้น</p>
+                <div id="realtime-gallery-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    </div>
+            </section>
+            
+            <section id="theme-section" class="mb-12 bg-white rounded-xl shadow-lg p-6 opacity-0 fade-in delay-1">
+                <h2 class="text-2xl font-semibold mb-6 text-gray-800">ธีมสีของงานแต่งงาน</h2>
+                <p class="text-gray-600 mb-4">โทนสีหลักของงานของเราคือ:</p>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+                    <div class="flex flex-col items-center">
+                        <div class="w-24 h-24 mb-3 flex items-center justify-center rounded-full bg-pink-300 border-2 border-pink-500">
+                            </div>
+                        <h3 class="font-medium text-gray-800">สีชมพูอ่อน</h3>
+                        <p class="text-sm text-gray-600">เช่น Rose Pink, Blush</p>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="w-24 h-24 mb-3 flex items-center justify-center rounded-full bg-purple-300 border-2 border-purple-500">
+                            </div>
+                        <h3 class="font-medium text-gray-800">สีม่วงลาเวนเดอร์</h3>
+                        <p class="text-sm text-gray-600">เช่น Lavender, Lilac</p>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="w-24 h-24 mb-3 flex items-center justify-center rounded-full bg-yellow-200 border-2 border-yellow-500">
+                            </div>
+                        <h3 class="font-medium text-gray-800">สีทอง</h3>
+                        <p class="text-sm text-gray-600">เช่น Gold, Champagne</p>
+                    </div>
+                </div>
+                <div class="mt-6 text-center text-gray-500 text-sm">
+                    <p>คุณสามารถเปลี่ยนสีและข้อความเหล่านี้ได้ในโค้ด</p>
+                </div>
+            </section>
+
+            <section id="venue-section" class="mb-12 bg-white rounded-xl shadow-lg p-6 opacity-0 fade-in delay-1">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-800">สถานที่จัดงาน</h2>
+                <div class="flex flex-col md:flex-row">
+                    <div class="md:w-1/2 mb-4 md:mb-0 md:pr-4">
+                        <div class="aspect-w-16 aspect-h-9 bg-gray-100 rounded-lg mb-4">
+                            <iframe 
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3875.511746419794!2d100.5011742148308!3d13.74620029035227!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x30e29910d6b9d62d%3A0x1d2e1b1d1e1d1e1d!2sSiam%20Paragon!5e0!3m2!1sen!2sth!4v1678888888888!5m2!1sen!2sth" 
+                                width="100%" 
+                                height="100%" 
+                                style="border:0;" 
+                                allowfullscreen="" 
+                                loading="lazy" 
+                                referrerpolicy="no-referrer-when-downgrade"
+                                class="rounded-lg">
+                            </iframe>
+                        </div>
+                    </div>
+                    <div class="md:w-1/2">
+                        <h3 class="text-lg font-medium text-gray-800 mb-2">โรงแรมเดอะเวดดิ้ง</h3>
+                        <p class="text-gray-600 mb-3">123 ถนนความรัก แขวงความสุข เขตสดใส กรุงเทพฯ 10XXX</p>
+                        <div class="flex items-center text-pink-500 mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <a href="https://maps.google.com/?q=123%20ถนนความรัก%20แขวงความสุข%20เขตสดใส%20กรุงเทพฯ%2010XXX" target="_blank" class="underline">ดูแผนที่</a>
+                        </div>
+                        <button class="bg-pink-500 text-white px-4 py-2 rounded-lg hover:bg-pink-600 transition duration-300" onclick="window.open('https://maps.google.com/?q=123%20ถนนความรัก%20แขวงความสุข%20เขตสดใส%20กรุงเทพฯ%2010XXX', '_blank')">
+                            นำทาง
+                        </button>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="schedule-section" class="mb-12 bg-white rounded-xl shadow-lg p-6 opacity-0 fade-in delay-2">
+                <h2 class="text-2xl font-semibold mb-6 text-gray-800">กำหนดการ</h2>
+                
+                <div class="relative">
+                    <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-pink-200"></div>
+                    
+                    <div class="relative pl-10 pb-8">
+                        <div class="absolute left-2 -ml-px mt-2 rounded-full h-6 w-6 flex items-center justify-center bg-pink-400 text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-800">พิธีเช้า</h3>
+                        <p class="text-gray-600">09:00 น. - 12:00 น.</p>
+                        <p class="text-gray-500 mt-2">พิธีหมั้น และ พิธีแห่ขันหมาก</p>
+                    </div>
+                    
+                    <div class="relative pl-10 pb-8">
+                        <div class="absolute left-2 -ml-px mt-2 rounded-full h-6 w-6 flex items-center justify-center bg-pink-400 text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-800">พิธีเย็น</h3>
+                        <p class="text-gray-600">18:00 น. - 22:00 น.</p>
+                        <p class="text-gray-500 mt-2">งานเลี้ยงฉลองมงคลสมรส</p>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="rsvp-section" class="mb-12 bg-white rounded-xl shadow-lg p-6 opacity-0 fade-in delay-3">
+                <h2 class="text-2xl font-semibold mb-6 text-gray-800">ตอบรับเข้าร่วมงาน</h2>
+                
+                <form id="rsvp-form" class="space-y-6">
+                    <div>
+                        <label for="guest-name" class="block text-gray-700 mb-2">ชื่อ-นามสกุล</label>
+                        <input type="text" id="guest-name" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-300" readonly>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-700 mb-2">การเข้าร่วมงาน</label>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <label class="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-pink-50 transition">
+                                <input type="radio" name="attendance" value="morning" class="h-5 w-5 text-pink-500">
+                                <span class="ml-2 text-gray-700">เข้าร่วมพิธีเช้า</span>
+                            </label>
+                            <label class="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-pink-50 transition">
+                                <input type="radio" name="attendance" value="evening" class="h-5 w-5 text-pink-500">
+                                <span class="ml-2 text-gray-700">เข้าร่วมงานเย็น</span>
+                            </label>
+                            <label class="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-pink-50 transition">
+                                <input type="radio" name="attendance" value="both" class="h-5 w-5 text-pink-500">
+                                <span class="ml-2 text-gray-700">เข้าร่วมทั้งสองงาน</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="guest-count" class="block text-gray-700 mb-2">จำนวนผู้เข้าร่วม</label>
+                        <select id="guest-count" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-300">
+                            <option value="1">1 ท่าน</option>
+                            <option value="2">2 ท่าน</option>
+                            <option value="3">3 ท่าน</option>
+                            <option value="4">4 ท่าน</option>
+                            <option value="5">5 ท่าน</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="guest-message" class="block text-gray-700 mb-2">ข้อความถึงบ่าวสาว (ไม่บังคับ)</label>
+                        <textarea id="guest-message" rows="3" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-300" placeholder="เขียนข้อความของคุณที่นี่..."></textarea>
+                        <button type="button" id="generate-message-btn" class="mt-2 w-full bg-gradient-to-r from-purple-400 to-indigo-400 text-white py-2 rounded-lg font-medium hover:from-purple-500 hover:to-indigo-500 transition duration-300 shadow-md flex items-center justify-center">
+                            <span id="generate-message-text">✨ ช่วยเขียนข้อความอวยพร ✨</span>
+                            <div id="generate-message-spinner" class="hidden animate-spin rounded-full h-5 w-5 border-b-2 border-white ml-2"></div>
+                        </button>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-gradient-to-r from-pink-400 to-purple-400 text-white py-3 rounded-lg font-medium hover:from-pink-500 hover:to-purple-500 transition duration-300 shadow-md">
+                        ยืนยันการตอบรับ
+                    </button>
+                </form>
+            </section>
+        </div>
+    </div>
+
+    <div id="admin-page" class="min-h-screen hidden">
+        <header class="bg-white shadow-md py-4 px-6 sticky top-0 z-10">
+            <div class="flex justify-between items-center">
+                <h1 class="text-xl font-semibold text-gray-800">หน้าจัดการงานแต่งงาน</h1>
+                <button id="logout-btn" class="text-sm text-pink-500 font-medium">ออกจากระบบ</button>
+            </div>
+        </header>
+
+        <div class="container mx-auto px-4 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-medium text-gray-800">จำนวนแขกทั้งหมด</h3>
+                        <span class="text-3xl font-bold text-pink-500" id="total-guests">0</span>
+                    </div>
+                    <div class="h-1 w-full bg-gray-200 rounded-full mb-2">
+                        <div class="h-1 bg-pink-500 rounded-full" style="width: 70%"></div>
+                    </div>
+                    <p class="text-sm text-gray-500">จากโทเค็นทั้งหมด <span id="total-tokens">0</span> โทเค็น</p>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-medium text-gray-800">เข้าร่วมพิธีเช้า</h3>
+                        <span class="text-3xl font-bold text-blue-500" id="morning-guests">0</span>
+                    </div>
+                    <div class="h-1 w-full bg-gray-200 rounded-full mb-2">
+                        <div class="h-1 bg-blue-500 rounded-full" style="width: 40%"></div>
+                    </div>
+                    <p class="text-sm text-gray-500">จากแขกทั้งหมด <span id="total-confirmed">0</span> ท่าน</p>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-medium text-gray-800">เข้าร่วมงานเย็น</h3>
+                        <span class="text-3xl font-bold text-purple-500" id="evening-guests">0</span>
+                    </div>
+                    <div class="h-1 w-full bg-gray-200 rounded-full mb-2">
+                        <div class="h-1 bg-purple-500 rounded-full" style="width: 60%"></div>
+                    </div>
+                    <p class="text-sm text-gray-500">จากแขกทั้งหมด <span id="total-confirmed2">0</span> ท่าน</p>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                <h2 class="text-xl font-semibold mb-6 text-gray-800">จัดการโทเค็น</h2>
+                
+                <div class="flex flex-col md:flex-row gap-4 mb-6">
+                    <div class="flex-1">
+                        <label for="token-name" class="block text-gray-700 mb-2">ชื่อแขก</label>
+                        <input type="text" id="token-name" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-300" placeholder="ชื่อ-นามสกุล">
+                    </div>
+                    <div class="flex-1">
+                        <label for="token-value" class="block text-gray-700 mb-2">โทเค็น (สร้างอัตโนมัติ)</label>
+                        <input type="text" id="token-value" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-300" readonly>
+                    </div>
+                    <div class="flex items-end">
+                        <button id="generate-token" class="px-6 py-3 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition duration-300">
+                            สร้างโทเค็น
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ชื่อแขก</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">โทเค็น</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">สถานะ</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="token-list">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                <h2 class="text-xl font-semibold mb-6 text-gray-800">อัปโหลดรูปภาพแกลเลอรี่หลังงาน</h2>
+                <div class="flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg mb-4">
+                    <input type="file" id="gallery-image-upload" accept="image/*" class="hidden">
+                    <label for="gallery-image-upload" class="cursor-pointer bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-300 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L20 20m-6-6l2-2m-2-2l2-2" />
+                        </svg>
+                        เลือกรูปภาพ
+                    </label>
+                    <p id="selected-image-name" class="mt-2 text-gray-600 text-sm"></p>
+                    <img id="image-preview" class="mt-4 max-h-48 rounded-lg shadow-md hidden" src="" alt="Image Preview">
+                </div>
+                <button id="upload-gallery-image-btn" class="w-full bg-green-500 text-white py-3 rounded-lg font-medium hover:bg-green-600 transition duration-300 shadow-md flex items-center justify-center">
+                    <span id="upload-gallery-image-text">อัปโหลดรูปภาพ</span>
+                    <div id="upload-gallery-image-spinner" class="hidden animate-spin rounded-full h-5 w-5 border-b-2 border-white ml-2"></div>
+                </button>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-semibold mb-6 text-gray-800">รายชื่อแขกที่ตอบรับ</h2>
+                
+                <div class="mb-4 flex flex-wrap gap-2">
+                    <button class="px-4 py-2 bg-gray-100 rounded-full text-gray-700 hover:bg-gray-200 transition filter-btn active" data-filter="all">ทั้งหมด</button>
+                    <button class="px-4 py-2 bg-gray-100 rounded-full text-gray-700 hover:bg-gray-200 transition filter-btn" data-filter="morning">พิธีเช้า</button>
+                    <button class="px-4 py-2 bg-gray-100 rounded-full text-gray-700 hover:bg-gray-200 transition filter-btn" data-filter="evening">งานเย็น</button>
+                    <button class="px-4 py-2 bg-gray-100 rounded-full text-gray-700 hover:bg-gray-200 transition filter-btn" data-filter="both">ทั้งสองงาน</button>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ชื่อแขก</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">การเข้าร่วม</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">จำนวนผู้เข้าร่วม</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ข้อความ</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="guest-list">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import necessary Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+
+        // Define Firebase configuration from Global variables
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const storage = getStorage(app); // Initialize Firebase Storage
+
+        let currentUserId = null; // Stores the current user's UID
+
+        // DOM Elements
+        const tokenPage = document.getElementById('token-page');
+        const adminLoginPage = document.getElementById('admin-login-page');
+        const galleryPage = document.getElementById('gallery-page');
+        const adminPage = document.getElementById('admin-page');
+        const envelopeFlap = document.querySelector('.envelope-flap');
+        const envelopeContent = document.querySelector('.envelope-content');
+        const guestNameDisplay = document.getElementById('guest-name-display');
+        const guestNameInput = document.getElementById('guest-name');
+        const guestMessageTextarea = document.getElementById('guest-message');
+        const generateMessageBtn = document.getElementById('generate-message-btn');
+        const generateMessageText = document.getElementById('generate-message-text');
+        const generateMessageSpinner = document.getElementById('generate-message-spinner');
+        const rsvpSection = document.getElementById('rsvp-section'); // Added for RSVP section visibility
+
+        // Admin Gallery Upload Elements
+        const galleryImageUploadInput = document.getElementById('gallery-image-upload');
+        const selectedImageName = document.getElementById('selected-image-name');
+        const imagePreview = document.getElementById('image-preview');
+        const uploadGalleryImageBtn = document.getElementById('upload-gallery-image-btn');
+        const uploadGalleryImageText = document.getElementById('upload-gallery-image-text');
+        const uploadGalleryImageSpinner = document.getElementById('upload-gallery-image-spinner');
+        const realtimeGalleryGrid = document.getElementById('realtime-gallery-grid');
+        const postWeddingGallerySection = document.getElementById('post-wedding-gallery-section');
+
+
+        // Wedding date for countdown (ปรับเปลี่ยนวันที่และเวลาได้ตามต้องการ)
+        const weddingDate = new Date("2025-12-31T18:00:00").getTime(); 
+
+        // Show envelope content with animation
+        setTimeout(() => {
+            envelopeFlap.classList.add('open');
+            setTimeout(() => {
+                envelopeContent.classList.add('show');
+            }, 800);
+        }, 500);
+
+        // Listen for authentication state changes
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUserId = user.uid;
+                console.log("Firebase Auth State Changed: User is logged in with UID:", currentUserId);
+            } else {
+                currentUserId = null;
+                console.log("Firebase Auth State Changed: User is logged out.");
+                showTokenPage();
+            }
+        });
+
+        // Function for anonymous login (for guests) or custom token (for admin)
+        async function authenticateUser() {
+            try {
+                if (initialAuthToken) {
+                    console.log("Attempting to sign in with custom token.");
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    console.log("Attempting to sign in anonymously.");
+                    await signInAnonymously(auth);
+                }
+                currentUserId = auth.currentUser.uid;
+                console.log("Authentication successful. Current User ID:", currentUserId);
+            } catch (error) {
+                console.error("Error during Firebase authentication:", error);
+                Swal.fire({
+                    title: 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ',
+                    text: 'โปรดลองอีกครั้งในภายหลัง',
+                    icon: 'error',
+                    confirmButtonColor: '#d33'
+                });
+            }
+        }
+
+        // Call authentication on page load
+        authenticateUser();
+
+        // Functions to display different pages
+        // showGalleryPage now accepts guestName and a boolean to enable/disable RSVP form
+        function showTokenPage() {
+            tokenPage.classList.remove('hidden');
+            adminLoginPage.classList.add('hidden');
+            galleryPage.classList.add('hidden');
+            adminPage.classList.add('hidden');
+            document.getElementById('token-input').value = ''; // Clear token input
+        }
+
+        function showAdminLoginPage() {
+            tokenPage.classList.add('hidden');
+            adminLoginPage.classList.remove('hidden');
+            galleryPage.classList.add('hidden');
+            adminPage.classList.add('hidden');
+            document.getElementById('admin-password').value = ''; // Clear password input
+        }
+
+        function showGalleryPage(guestName = '', enableRsvp = false, scrollToSectionId = null) {
+            tokenPage.classList.add('hidden');
+            adminLoginPage.classList.add('hidden');
+            adminPage.classList.add('hidden');
+            galleryPage.classList.remove('hidden');
+
+            guestNameInput.value = guestName; // Set guest name in RSVP form
+            guestNameDisplay.textContent = guestName ? `ยินดีต้อนรับ ${guestName}` : 'ยินดีต้อนรับ'; // Display guest name in header
+
+            // Control RSVP form visibility and editability
+            if (enableRsvp) {
+                rsvpSection.classList.remove('hidden');
+                guestNameInput.readOnly = false;
+            } else {
+                rsvpSection.classList.add('hidden');
+                guestNameInput.readOnly = true; // Make name read-only if not RSVPing
+            }
+
+            // Animate elements
+            const fadeElements = document.querySelectorAll('.fade-in');
+            fadeElements.forEach(el => {
+                el.style.opacity = '1';
+            });
+
+            // Render real-time gallery when gallery page is shown
+            renderRealtimeGallery();
+
+            // Scroll to specific section if requested
+            if (scrollToSectionId) {
+                const targetSection = document.getElementById(scrollToSectionId);
+                if (targetSection) {
+                    targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+        }
+
+        async function showAdminPage() {
+            tokenPage.classList.add('hidden');
+            adminLoginPage.classList.add('hidden');
+            galleryPage.classList.add('hidden');
+            adminPage.classList.remove('hidden');
+            
+            // Wait for auth to be ready before calling Firestore
+            if (currentUserId) {
+                console.log("Showing Admin Page. Current User ID:", currentUserId);
+                await addExampleTokens(); // Call to add example tokens
+                updateAdminDashboard();
+                renderTokenList();
+                renderGuestList();
+            } else {
+                console.warn("User not authenticated yet for admin page. Waiting for auth state. Attempting re-authentication.");
+                await authenticateUser(); // Attempt to re-authenticate if not ready
+                if (currentUserId) {
+                    console.log("Re-authentication successful. Proceeding to load admin data.");
+                    await addExampleTokens(); // Call to add example tokens after re-auth
+                    updateAdminDashboard();
+                    renderTokenList();
+                    renderGuestList();
+                } else {
+                    console.error("Failed to authenticate for admin page. Please try logging in again.");
+                    Swal.fire({
+                        title: 'เข้าสู่ระบบไม่สำเร็จ',
+                        text: 'ไม่สามารถเข้าถึงหน้าผู้ดูแลระบบได้ โปรดลองเข้าสู่ระบบอีกครั้ง',
+                        icon: 'error',
+                        confirmButtonColor: '#d33'
+                    });
+                    showAdminLoginPage(); // Go back to admin login
+                }
+            }
+        }
+
+        // Function to add example tokens if the collection is empty
+        async function addExampleTokens() {
+            try {
+                const tokensRef = collection(db, `artifacts/${appId}/public/data/tokens`);
+                const snapshot = await getDocs(tokensRef);
+
+                if (snapshot.empty) {
+                    console.log("Adding example tokens to Firestore...");
+                    const exampleTokens = [
+                        { name: "คุณสมชาย ใจดี", token: "SOMCHAI", used: false, created: new Date().toISOString() },
+                        { name: "คุณสมหญิง สวยมาก", token: "SOMYING", used: false, created: new Date().toISOString() },
+                        { name: "คุณประเสริฐ เลิศล้ำ", token: "PRASERT", used: false, created: new Date().toISOString() },
+                        { name: "คุณสุดา น่ารัก", token: "SUDA", used: false, created: new Date().toISOString() }
+                    ];
+
+                    for (const tokenData of exampleTokens) {
+                        await addDoc(tokensRef, tokenData);
+                    }
+                    console.log("Example tokens added successfully.");
+                } else {
+                    console.log("Tokens already exist, not adding example tokens.");
+                }
+            } catch (error) {
+                console.error("Error adding example tokens:", error);
+            }
+        }
+
+
+        // Admin access button - Show login page
+        document.getElementById('admin-access').addEventListener('click', function() {
+            showAdminLoginPage();
+        });
+        
+        // Back to token page button
+        document.getElementById('back-to-token').addEventListener('click', function() {
+            showTokenPage();
+        });
+        
+        // Admin login button
+        document.getElementById('admin-login-btn').addEventListener('click', async function() {
+            const password = document.getElementById('admin-password').value;
+            const ADMIN_PASSWORD = 'admin123'; // Admin password (should be securely stored in a real system)
+            
+            if (password === ADMIN_PASSWORD) {
+                // In a real system, use Firebase Authentication with email/password or a more secure Custom Token
+                // For this example, we use simple password validation and allow access to the admin page
+                showAdminPage();
+            } else {
+                Swal.fire({
+                    title: 'รหัสผ่านไม่ถูกต้อง',
+                    icon: 'error',
+                    confirmButtonColor: '#d33'
+                });
+            }
+        });
+        
+        // Token submission
+        document.getElementById('submit-token').addEventListener('click', async function() {
+            const tokenInput = document.getElementById('token-input').value.trim();
+            
+            if (!tokenInput) {
+                Swal.fire({
+                    title: 'กรุณาใส่โทเค็น',
+                    icon: 'warning',
+                    confirmButtonColor: '#3085d6'
+                });
+                return;
+            }
+
+            try {
+                console.log("Submitting token. Current User ID:", currentUserId);
+                // Search for the token in Firestore
+                const tokensRef = collection(db, `artifacts/${appId}/public/data/tokens`);
+                const q = query(tokensRef, where("token", "==", tokenInput));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    Swal.fire({
+                        title: 'โทเค็นไม่ถูกต้อง',
+                        text: 'กรุณาตรวจสอบโทเค็นของคุณอีกครั้ง',
+                        icon: 'error',
+                        confirmButtonColor: '#d33'
+                    });
+                    return;
+                }
+
+                const tokenDoc = querySnapshot.docs[0];
+                const tokenData = tokenDoc.data();
+
+                if (tokenData.used) {
+                    // Token already used, show gallery directly without RSVP form
+                    Swal.fire({
+                        title: 'โทเค็นนี้ถูกใช้งานแล้ว',
+                        text: 'คุณสามารถเข้าชมรายละเอียดงานได้เลย',
+                        icon: 'info',
+                        confirmButtonColor: '#3085d6'
+                    }).then(() => {
+                        showGalleryPage(tokenData.name, false); // Pass false to disable RSVP form
+                    });
+                } else {
+                    // Token not used, mark as used and show gallery with RSVP form
+                    console.log("Marking token as used for token ID:", tokenDoc.id);
+                    await updateDoc(doc(db, `artifacts/${appId}/public/data/tokens`, tokenDoc.id), {
+                        used: true,
+                        usedBy: currentUserId, // Save UID of the user who used the token
+                        usedAt: new Date().toISOString()
+                    });
+                    
+                    showGalleryPage(tokenData.name, true); // Pass true to enable RSVP form
+                }
+            } catch (error) {
+                console.error("Error submitting token:", error);
+                Swal.fire({
+                    title: 'เกิดข้อผิดพลาด',
+                    text: 'ไม่สามารถตรวจสอบโทเค็นได้ โปรดลองอีกครั้ง',
+                    icon: 'error',
+                    confirmButtonColor: '#d33'
+                });
+            }
+        });
+        
+        // Image carousel functionality (for main gallery)
+        let currentSlide = 0;
+        const carousel = document.getElementById('image-carousel');
+        const slides = carousel.children.length;
+        const carouselIndicators = document.getElementById('carousel-indicators');
+
+        // Create initial slide indicators
+        function createIndicators() {
+            carouselIndicators.innerHTML = '';
+            for (let i = 0; i < slides; i++) {
+                const span = document.createElement('span');
+                span.classList.add('h-2', 'w-2', 'rounded-full', 'bg-white');
+                if (i === currentSlide) {
+                    span.classList.add('bg-opacity-100');
+                } else {
+                    span.classList.add('bg-opacity-50');
+                }
+                carouselIndicators.appendChild(span);
+            }
+        }
+        createIndicators(); // Call on page load
+
+        document.getElementById('next-btn').addEventListener('click', function() {
+            currentSlide = (currentSlide + 1) % slides;
+            updateCarousel();
+        });
+        
+        document.getElementById('prev-btn').addEventListener('click', function() {
+            currentSlide = (currentSlide - 1 + slides) % slides;
+            updateCarousel();
+        });
+        
+        function updateCarousel() {
+            carousel.style.transform = `translateX(-${currentSlide * 100}%)`;
+            
+            // Update slide indicators
+            const indicators = carouselIndicators.querySelectorAll('span');
+            indicators.forEach((indicator, index) => {
+                if (index === currentSlide) {
+                    indicator.classList.add('bg-opacity-100');
+                    indicator.classList.remove('bg-opacity-50');
+                } else {
+                    indicator.classList.add('bg-opacity-50');
+                    indicator.classList.remove('bg-opacity-100');
+                }
+            });
+        }
+        
+        // RSVP form submission
+        document.getElementById('rsvp-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const name = guestNameInput.value;
+            const attendance = document.querySelector('input[name="attendance"]:checked')?.value;
+            const guestCount = document.getElementById('guest-count').value;
+            const message = guestMessageTextarea.value;
+            
+            if (!attendance) {
+                Swal.fire({
+                    title: 'กรุณาเลือกการเข้าร่วมงาน',
+                    icon: 'warning',
+                    confirmButtonColor: '#3085d6'
+                });
+                return;
+            }
+
+            try {
+                console.log("Submitting RSVP. Current User ID:", currentUserId);
+                const guestsRef = collection(db, `artifacts/${appId}/public/data/guests`);
+                
+                // Check if this guest has already RSVP'd
+                const allGuestsSnapshot = await getDocs(guestsRef);
+                const existingGuestDoc = allGuestsSnapshot.docs.find(doc => doc.data().name === name);
+
+                const guestData = {
+                    name,
+                    attendance,
+                    guestCount: parseInt(guestCount),
+                    message,
+                    timestamp: new Date().toISOString(),
+                    userId: currentUserId // Save UID of the user who RSVP'd
+                };
+
+                if (existingGuestDoc) {
+                    // Update existing guest data
+                    console.log("Updating existing guest RSVP for guest ID:", existingGuestDoc.id);
+                    await updateDoc(doc(db, `artifacts/${appId}/public/data/guests`, existingGuestDoc.id), guestData);
+                } else {
+                    // Add new guest data
+                    console.log("Adding new guest RSVP.");
+                    await addDoc(guestsRef, guestData);
+                }
+                
+                Swal.fire({
+                    title: 'ขอบคุณสำหรับการตอบรับ',
+                    text: 'เราหวังว่าจะได้พบคุณในงานแต่งงาน',
+                    icon: 'success',
+                    confirmButtonColor: '#3085d6'
+                });
+            } catch (error) {
+                console.error("Error submitting RSVP:", error);
+                Swal.fire({
+                    title: 'เกิดข้อผิดพลาด',
+                    text: 'ไม่สามารถบันทึกการตอบรับได้ โปรดลองอีกครั้ง',
+                    icon: 'error',
+                    confirmButtonColor: '#d33'
+                });
+            }
+        });
+        
+        // Admin page functions
+        document.getElementById('logout-btn').addEventListener('click', async function() {
+            try {
+                console.log("Attempting to log out.");
+                await signOut(auth); // Sign out from Firebase
+                console.log("Logout successful.");
+                showTokenPage(); // Return to token page
+            } catch (error) {
+                console.error("Error logging out:", error);
+                Swal.fire({
+                    title: 'เกิดข้อผิดพลาดในการออกจากระบบ',
+                    icon: 'error',
+                    confirmButtonColor: '#d33'
+                });
+            }
+        });
+        
+        // Generate random token
+        document.getElementById('generate-token').addEventListener('click', async function() {
+            const name = document.getElementById('token-name').value.trim();
+            
+            if (!name) {
+                Swal.fire({
+                    title: 'กรุณาใส่ชื่อแขก',
+                    icon: 'warning',
+                    confirmButtonColor: '#3085d6'
+                });
+                return;
+            }
+            
+            // Generate random token
+            const token = Math.random().toString(36).substring(2, 8).toUpperCase();
+            document.getElementById('token-value').value = token;
+            
+            try {
+                console.log("Generating token. Current User ID:", currentUserId);
+                const tokensRef = collection(db, `artifacts/${appId}/public/data/tokens`);
+                await addDoc(tokensRef, {
+                    name,
+                    token,
+                    used: false,
+                    created: new Date().toISOString()
+                });
+                
+                Swal.fire({
+                    title: 'สร้างโทเค็นสำเร็จ',
+                    text: `โทเค็นสำหรับ ${name}: ${token}`,
+                    icon: 'success',
+                    confirmButtonColor: '#3085d6'
+                });
+                
+                document.getElementById('token-name').value = '';
+                renderTokenList(); // Update token list
+                updateAdminDashboard(); // Update dashboard
+            } catch (error) {
+                console.error("Error generating token:", error);
+                Swal.fire({
+                    title: 'เกิดข้อผิดพลาด',
+                    text: 'ไม่สามารถสร้างโทเค็นได้ โปรดลองอีกครั้ง',
+                    icon: 'error',
+                    confirmButtonColor: '#d33'
+                });
+            }
+        });
+        
+        // Render token list
+        function renderTokenList() {
+            const tokenList = document.getElementById('token-list');
+            tokenList.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">กำลังโหลดโทเค็น...</td></tr>`;
+
+            // Use onSnapshot to listen for real-time changes
+            const tokensRef = collection(db, `artifacts/${appId}/public/data/tokens`);
+            console.log("Attempting to listen for tokens updates. Current User ID:", currentUserId);
+            onSnapshot(tokensRef, (snapshot) => {
+                tokenList.innerHTML = ''; // Clear existing list
+                if (snapshot.empty) {
+                    tokenList.innerHTML = `
+                        <tr>
+                            <td colspan="4" class="px-6 py-4 text-center text-gray-500">ยังไม่มีโทเค็น</td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                snapshot.docs.forEach(docSnapshot => {
+                    const token = docSnapshot.data();
+                    const docId = docSnapshot.id;
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap">${token.name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap font-mono">${token.token}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            ${token.used ? 
+                                '<span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">ใช้งานแล้ว</span>' : 
+                                '<span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">ยังไม่ได้ใช้</span>'
+                            }
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <button class="text-red-500 hover:text-red-700 delete-token" data-id="${docId}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </td>
+                    `;
+                    tokenList.appendChild(row);
+                });
+                
+                // Add event listeners for delete buttons
+                document.querySelectorAll('.delete-token').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const docIdToDelete = this.getAttribute('data-id');
+                        deleteToken(docIdToDelete);
+                    });
+                });
+                updateAdminDashboard(); // Update dashboard when token list changes
+            }, (error) => {
+                console.error("Error fetching tokens:", error);
+                tokenList.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-red-500">เกิดข้อผิดพลาดในการโหลดโทเค็น</td></tr>`;
+            });
+        }
+        
+        // Delete token
+        async function deleteToken(docId) {
+            Swal.fire({
+                title: 'ยืนยันการลบโทเค็น',
+                text: 'คุณแน่ใจหรือไม่ว่าต้องการลบโทเค็นนี้?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'ลบ',
+                cancelButtonText: 'ยกเลิก'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        console.log("Attempting to delete token ID:", docId);
+                        await deleteDoc(doc(db, `artifacts/${appId}/public/data/tokens`, docId));
+                        Swal.fire(
+                            'ลบโทเค็นสำเร็จ',
+                            'โทเค็นถูกลบออกจากระบบแล้ว',
+                            'success'
+                        );
+                    } catch (error) {
+                        console.error("Error deleting token:", error);
+                        Swal.fire({
+                            title: 'เกิดข้อผิดพลาด',
+                            text: 'ไม่สามารถลบโทเค็นได้ โปรดลองอีกครั้ง',
+                            icon: 'error',
+                            confirmButtonColor: '#d33'
+                        });
+                    }
+                }
+            });
+        }
+        
+        // Render guest list
+        function renderGuestList(filter = 'all') {
+            const guestList = document.getElementById('guest-list');
+            guestList.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">กำลังโหลดรายชื่อแขก...</td></tr>`;
+
+            const guestsRef = collection(db, `artifacts/${appId}/public/data/guests`);
+            console.log("Attempting to listen for guests updates. Current User ID:", currentUserId);
+            onSnapshot(guestsRef, (snapshot) => {
+                guestList.innerHTML = ''; // Clear existing list
+                if (snapshot.empty) {
+                    guestList.innerHTML = `
+                        <tr>
+                            <td colspan="4" class="px-6 py-4 text-center text-gray-500">ยังไม่มีแขกตอบรับ</td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                const guests = snapshot.docs.map(doc => doc.data());
+                const filteredGuests = filter === 'all' ? 
+                    guests : 
+                    guests.filter(g => g.attendance === filter || (filter === 'both' && g.attendance === 'both'));
+                
+                filteredGuests.forEach(guest => {
+                    const row = document.createElement('tr');
+                    
+                    let attendanceText = '';
+                    let attendanceClass = '';
+                    
+                    switch(guest.attendance) {
+                        case 'morning':
+                            attendanceText = 'พิธีเช้า';
+                            attendanceClass = 'bg-blue-100 text-blue-800';
+                            break;
+                        case 'evening':
+                            attendanceText = 'งานเย็น';
+                            attendanceClass = 'bg-purple-100 text-purple-800';
+                            break;
+                        case 'both':
+                            attendanceText = 'ทั้งสองงาน';
+                            attendanceClass = 'bg-pink-100 text-pink-800';
+                            break;
+                    }
+                    
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap">${guest.name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs rounded-full ${attendanceClass}">${attendanceText}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">${guest.guestCount} ท่าน</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-500">${guest.message || '-'}</td>
+                    `;
+                    guestList.appendChild(row);
+                });
+                updateAdminDashboard(); // Update dashboard when guest list changes
+            }, (error) => {
+                console.error("Error fetching guests:", error);
+                guestList.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-red-500">เกิดข้อผิดพลาดในการโหลดรายชื่อแขก</td></tr>`;
+            });
+        }
+        
+        // Filter guest list
+        document.querySelectorAll('.filter-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const filter = this.getAttribute('data-filter');
+                
+                // Update active button
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.classList.remove('active', 'bg-pink-100', 'text-pink-700');
+                    btn.classList.add('bg-gray-100', 'text-gray-700');
+                });
+                
+                this.classList.remove('bg-gray-100', 'text-gray-700');
+                this.classList.add('active', 'bg-pink-100', 'text-pink-700');
+                
+                renderGuestList(filter);
+            });
+        });
+        
+        // Update admin dashboard
+        function updateAdminDashboard() {
+            const tokensRef = collection(db, `artifacts/${appId}/public/data/tokens`);
+            const guestsRef = collection(db, `artifacts/${appId}/public/data/guests`);
+
+            // Listen for token changes
+            console.log("Attempting to listen for total tokens updates. Current User ID:", currentUserId);
+            onSnapshot(tokensRef, (tokenSnapshot) => {
+                document.getElementById('total-tokens').textContent = tokenSnapshot.size;
+            }, (error) => {
+                console.error("Error updating total tokens:", error);
+            });
+
+            // Listen for guest changes
+            console.log("Attempting to listen for guest counts updates. Current User ID:", currentUserId);
+            onSnapshot(guestsRef, (guestSnapshot) => {
+                document.getElementById('total-guests').textContent = guestSnapshot.size;
+                
+                let morningCount = 0;
+                let eveningCount = 0;
+                let totalConfirmed = 0;
+                
+                guestSnapshot.docs.forEach(doc => {
+                    const guest = doc.data();
+                    if (guest.attendance === 'morning' || guest.attendance === 'both') {
+                        morningCount += guest.guestCount;
+                    }
+                    
+                    if (guest.attendance === 'evening' || guest.attendance === 'both') {
+                        eveningCount += guest.guestCount;
+                    }
+                    
+                    totalConfirmed += guest.guestCount;
+                });
+                
+                document.getElementById('morning-guests').textContent = morningCount;
+                document.getElementById('evening-guests').textContent = eveningCount;
+                document.getElementById('total-confirmed').textContent = totalConfirmed;
+                document.getElementById('total-confirmed2').textContent = totalConfirmed;
+            }, (error) => {
+                console.error("Error updating guest counts:", error);
+            });
+        }
+        
+        // Auto-rotate carousel
+        setInterval(() => {
+            currentSlide = (currentSlide + 1) % slides;
+            updateCarousel();
+        }, 5000);
+
+        // --- Countdown Timer Logic ---
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const distance = weddingDate - now;
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            document.getElementById('days').textContent = String(days).padStart(2, '0');
+            document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+            document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+            document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+
+            if (distance < 0) {
+                clearInterval(countdownInterval);
+                document.getElementById('countdown-section').innerHTML = `<h2 class="text-2xl font-semibold text-gray-800 mb-4">งานแต่งงานได้เริ่มต้นขึ้นแล้ว!</h2><p class="text-lg text-purple-700">ขอแสดงความยินดีกับคู่บ่าวสาว!</p>`;
+            }
+        }
+
+        const countdownInterval = setInterval(updateCountdown, 1000);
+        updateCountdown(); // Initial call to display immediately
+
+        // --- Shortcut Buttons Logic ---
+        document.getElementById('shortcut-gallery').addEventListener('click', function() {
+            showGalleryPage('', false, 'gallery-section'); // Show gallery, disable RSVP, scroll to gallery
+        });
+
+        document.getElementById('shortcut-venue').addEventListener('click', function() {
+            showGalleryPage('', false, 'venue-section'); // Show gallery, disable RSVP, scroll to venue
+        });
+
+        document.getElementById('shortcut-schedule').addEventListener('click', function() {
+            showGalleryPage('', false, 'schedule-section'); // Show gallery, disable RSVP, scroll to schedule
+        });
+
+
+        // --- Gemini API Integration ---
+        generateMessageBtn.addEventListener('click', async () => {
+            generateMessageText.classList.add('hidden');
+            generateMessageSpinner.classList.remove('hidden');
+            generateMessageBtn.disabled = true; // Disable button during API call
+
+            try {
+                const prompt = "เขียนข้อความอวยพรงานแต่งงานสั้นๆ ให้คู่บ่าวสาว"; // Thai prompt for the LLM
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // Leave as-is, Canvas will provide it at runtime
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const generatedText = result.candidates[0].content.parts[0].text;
+                    guestMessageTextarea.value = generatedText; // Populate the textarea
+                } else {
+                    console.error("Unexpected API response structure:", result);
+                    Swal.fire({
+                        title: 'เกิดข้อผิดพลาด',
+                        text: 'ไม่สามารถสร้างข้อความอวยพรได้ โปรดลองอีกครั้ง',
+                        icon: 'error',
+                        confirmButtonColor: '#d33'
+                    });
+                }
+            } catch (error) {
+                console.error("Error calling Gemini API:", error);
+                Swal.fire({
+                    title: 'เกิดข้อผิดพลาด',
+                    text: 'ไม่สามารถเชื่อมต่อกับ AI ได้ โปรดตรวจสอบการเชื่อมต่ออินเทอร์เน็ตของคุณ',
+                    icon: 'error',
+                    confirmButtonColor: '#d33'
+                });
+            } finally {
+                generateMessageText.classList.remove('hidden');
+                generateMessageSpinner.classList.add('hidden');
+                generateMessageBtn.disabled = false; // Re-enable button
+            }
+        });
+
+        // --- Admin Gallery Upload Logic ---
+        let selectedFile = null;
+
+        galleryImageUploadInput.addEventListener('change', (event) => {
+            selectedFile = event.target.files[0];
+            if (selectedFile) {
+                selectedImageName.textContent = `ไฟล์ที่เลือก: ${selectedFile.name}`;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    imagePreview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(selectedFile);
+            } else {
+                selectedImageName.textContent = '';
+                imagePreview.classList.add('hidden');
+                imagePreview.src = '';
+            }
+        });
+
+        uploadGalleryImageBtn.addEventListener('click', async () => {
+            if (!selectedFile) {
+                Swal.fire({
+                    title: 'กรุณาเลือกรูปภาพ',
+                    text: 'โปรดเลือกไฟล์รูปภาพที่ต้องการอัปโหลด',
+                    icon: 'warning',
+                    confirmButtonColor: '#3085d6'
+                });
+                return;
+            }
+
+            uploadGalleryImageText.classList.add('hidden');
+            uploadGalleryImageSpinner.classList.remove('hidden');
+            uploadGalleryImageBtn.disabled = true;
+
+            try {
+                // Create a unique file name for storage
+                const fileName = `${Date.now()}_${selectedFile.name}`;
+                const storageRef = ref(storage, `artifacts/${appId}/public/realtime_gallery_images/${fileName}`);
+                
+                // Upload the file
+                const uploadTask = await uploadBytes(storageRef, selectedFile);
+                const imageUrl = await getDownloadURL(uploadTask.ref);
+
+                // Save image metadata to Firestore
+                const galleryImagesRef = collection(db, `artifacts/${appId}/public/data/realtime_gallery_images`);
+                await addDoc(galleryImagesRef, {
+                    url: imageUrl,
+                    fileName: fileName,
+                    timestamp: new Date().toISOString(),
+                    uploadedBy: currentUserId
+                });
+
+                Swal.fire({
+                    title: 'อัปโหลดสำเร็จ!',
+                    text: 'รูปภาพถูกอัปโหลดและแสดงในแกลเลอรี่หลังงานแล้ว',
+                    icon: 'success',
+                    confirmButtonColor: '#3085d6'
+                });
+
+                // Clear input and preview
+                galleryImageUploadInput.value = '';
+                selectedImageName.textContent = '';
+                imagePreview.classList.add('hidden');
+                imagePreview.src = '';
+                selectedFile = null;
+
+            } catch (error) {
+                console.error("Error uploading image:", error);
+                Swal.fire({
+                    title: 'เกิดข้อผิดพลาดในการอัปโหลด',
+                    text: `ไม่สามารถอัปโหลดรูปภาพได้: ${error.message}`,
+                    icon: 'error',
+                    confirmButtonColor: '#d33'
+                });
+            } finally {
+                uploadGalleryImageText.classList.remove('hidden');
+                uploadGalleryImageSpinner.classList.add('hidden');
+                uploadGalleryImageBtn.disabled = false;
+            }
+        });
+
+        // Function to render images in the real-time gallery section
+        function renderRealtimeGallery() {
+            realtimeGalleryGrid.innerHTML = `<p class="text-center text-gray-500">กำลังโหลดรูปภาพ...</p>`;
+            const galleryImagesRef = collection(db, `artifacts/${appId}/public/data/realtime_gallery_images`);
+            
+            onSnapshot(galleryImagesRef, (snapshot) => {
+                realtimeGalleryGrid.innerHTML = ''; // Clear existing images
+                if (snapshot.empty) {
+                    realtimeGalleryGrid.innerHTML = `<p class="text-center text-gray-500">ยังไม่มีรูปภาพในแกลเลอรี่หลังงาน</p>`;
+                    postWeddingGallerySection.classList.add('hidden'); // Hide section if no images
+                    return;
+                }
+
+                postWeddingGallerySection.classList.remove('hidden'); // Show section if there are images
+                snapshot.docs.forEach(docSnapshot => {
+                    const imageData = docSnapshot.data();
+                    const imageElement = document.createElement('div');
+                    imageElement.classList.add('relative', 'group');
+                    imageElement.innerHTML = `
+                        <img src="${imageData.url}" alt="Real-time Wedding Photo" class="w-full h-auto object-cover rounded-lg shadow-md">
+                        <button class="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity delete-realtime-image" data-id="${docSnapshot.id}" data-filename="${imageData.fileName}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    `;
+                    realtimeGalleryGrid.appendChild(imageElement);
+                });
+
+                // Add event listeners for delete buttons
+                document.querySelectorAll('.delete-realtime-image').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const docIdToDelete = this.getAttribute('data-id');
+                        const fileNameToDelete = this.getAttribute('data-filename');
+                        deleteRealtimeImage(docIdToDelete, fileNameToDelete);
+                    });
+                });
+
+            }, (error) => {
+                console.error("Error fetching real-time gallery images:", error);
+                realtimeGalleryGrid.innerHTML = `<p class="text-center text-red-500">เกิดข้อผิดพลาดในการโหลดรูปภาพ</p>`;
+            });
+        }
+
+        // Function to delete real-time gallery image
+        async function deleteRealtimeImage(docId, fileName) {
+            Swal.fire({
+                title: 'ยืนยันการลบรูปภาพ',
+                text: 'คุณแน่ใจหรือไม่ว่าต้องการลบรูปภาพนี้จากแกลเลอรี่หลังงาน?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'ลบ',
+                cancelButtonText: 'ยกเลิก'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        // Delete from Firebase Storage
+                        const imageRef = ref(storage, `artifacts/${appId}/public/realtime_gallery_images/${fileName}`);
+                        await deleteObject(imageRef);
+                        console.log("Image deleted from Storage:", fileName);
+
+                        // Delete from Firestore
+                        await deleteDoc(doc(db, `artifacts/${appId}/public/data/realtime_gallery_images`, docId));
+                        console.log("Image data deleted from Firestore:", docId);
+
+                        Swal.fire(
+                            'ลบรูปภาพสำเร็จ',
+                            'รูปภาพถูกลบออกจากแกลเลอรี่แล้ว',
+                            'success'
+                        );
+                    } catch (error) {
+                        console.error("Error deleting real-time image:", error);
+                        Swal.fire({
+                            title: 'เกิดข้อผิดพลาด',
+                            text: `ไม่สามารถลบรูปภาพได้: ${error.message}`,
+                            icon: 'error',
+                            confirmButtonColor: '#d33'
+                        });
+                    }
+                }
+            });
+        }
+
+
+        /*
+         * สำคัญ: การแก้ไขข้อผิดพลาด "Missing or insufficient permissions"
+         * ข้อผิดพลาดนี้เกิดขึ้นเนื่องจากกฎความปลอดภัยของ Firebase Firestore และ Firebase Storage ไม่อนุญาตให้แอปพลิเคชันของคุณ
+         * อ่านหรือเขียนข้อมูลในคอลเลกชัน/ที่เก็บรูปภาพที่เกี่ยวข้อง
+         *
+         * คุณต้องกำหนดค่ากฎความปลอดภัยในโปรเจกต์ Firebase ของคุณ
+         * ไปที่ Firebase Console -> Firestore Database -> Rules
+         * และอัปเดตกฎให้เป็นดังนี้:
+         */
+        /*
+        rules_version = '2';
+        service cloud.firestore {
+          match /databases/{database}/documents {
+            // อนุญาตให้ผู้ใช้ที่เข้าสู่ระบบแล้ว (authenticated) อ่านและเขียนข้อมูลโทเค็น
+            match /artifacts/{appId}/public/data/tokens/{documentId} {
+              allow read, write: if request.auth != null;
+            }
+
+            // อนุญาตให้ผู้ใช้ที่เข้าสู่ระบบแล้ว (authenticated) อ่านและเขียนข้อมูลแขก (RSVP)
+            match /artifacts/{appId}/public/data/guests/{documentId} {
+              allow read, write: if request.auth != null;
+            }
+
+            // อนุญาตให้ผู้ใช้ที่เข้าสู่ระบบแล้ว (authenticated) อ่านและเขียนข้อมูลรูปภาพแกลเลอรี่หลังงาน
+            match /artifacts/{appId}/public/data/realtime_gallery_images/{documentId} {
+              allow read, write: if request.auth != null;
+            }
+
+            // กฎสำหรับข้อมูลส่วนตัวของผู้ใช้ (ถ้ามี)
+            // match /artifacts/{appId}/users/{userId}/{document=**} {
+            //   allow read, write: if request.auth != null && request.auth.uid == userId;
+            // }
+          }
+        }
+        */
+        /*
+         * และสำหรับ Firebase Storage Rules:
+         * ไปที่ Firebase Console -> Storage -> Rules
+         * และอัปเดตกฎให้เป็นดังนี้:
+         */
+        /*
+        rules_version = '2';
+        service firebase.storage {
+          match /b/{bucket}/o {
+            // อนุญาตให้ผู้ใช้ที่เข้าสู่ระบบแล้ว (authenticated) อ่านและเขียนรูปภาพในโฟลเดอร์ realtime_gallery_images
+            match /artifacts/{appId}/public/realtime_gallery_images/{fileName} {
+              allow read, write: if request.auth != null;
+            }
+          }
+        }
+        */
+        // นอกจากนี้ ในส่วนของการส่งแบบฟอร์ม RSVP (document.getElementById('rsvp-form').addEventListener('submit'))
+        // ได้มีการปรับเปลี่ยนการ query สำหรับการตรวจสอบแขกที่มีอยู่
+        // จากเดิมที่ใช้ `query(guestsRef, where("name", "==", name));`
+        // เป็นการดึง `allGuestsSnapshot` แล้วกรองด้วย JavaScript (`allGuestsSnapshot.docs.find(doc => doc.data().name === name);`)
+        // เพื่อหลีกเลี่ยงข้อผิดพลาด "The query requires an index" ซึ่งผู้ใช้ไม่สามารถสร้าง index ได้โดยตรงใน Canvas
+        // สำหรับข้อมูลจำนวนน้อย วิธีนี้สามารถทำงานได้ แต่สำหรับข้อมูลจำนวนมาก อาจต้องพิจารณาการออกแบบฐานข้อมูลใหม่
+        // หรือใช้ Firebase Functions เพื่อสร้าง index ที่จำเป็น
+    </script>
+</body>
+</html>
